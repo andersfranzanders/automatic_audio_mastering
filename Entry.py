@@ -6,7 +6,7 @@ path_ref = "audios/LPP - Como eh.mp3"
 path_out = "audios/"
 
 
-parameters = {"n_fft": 2048, "kernel_length": 80, "excerp_length_s":30 }
+parameters = {"n_fft": 2048, "kernel_length": 80, "excerp_length_s":30 , 'res_bits':16 }
 
 
 

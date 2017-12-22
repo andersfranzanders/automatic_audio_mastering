@@ -1,6 +1,7 @@
 
-import helper.SpectralAdaptor as Spectral
+import helper.SpectralAdaptor as SA
 import helper.SignalProcessor as SignalProcessor
+import helper.DynamicAdaptor as DA
 
 
 
@@ -12,12 +13,13 @@ def doMastering(y_in, y_ref, sr, parameters):
 
     print("preprocessed files!")
 
-    y_in_refrain = SignalProcessor.getLoudestPart(y_in, sr, parameters)
-    y_ref_refrain = SignalProcessor.getLoudestPart(y_ref, sr, parameters)
+    y_in_chorus = SignalProcessor.getLoudestPart(y_in, sr, parameters)
+    y_ref_chorus = SignalProcessor.getLoudestPart(y_ref, sr, parameters)
 
     print("extracted loudest parts!")
 
-    y_filtered = Spectral.spectralAdaption(y_in, y_in_refrain, y_ref_refrain, parameters)
+    y_filtered = SA.spectralAdaption(y_in, y_in_chorus, y_ref_chorus, parameters)
+    #y_compressed = DA.dynamicAdaption(y_in, y_in_chorus, y_ref_chorus, parameters)
 
     print("adapted Spectrum!")
 
