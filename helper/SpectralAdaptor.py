@@ -2,6 +2,7 @@
 import scipy
 import librosa
 import numpy as np
+import helper.SignalProcessor as sp
 
 
 
@@ -17,8 +18,8 @@ def calAverageSpectrum(y, n_fft):
 
 
 def calMagnitudeSTFT(y_mono, n_fft):
-    # return librosa.stft(y=y_mono, n_fft=n_fft, hop_length=int(n_fft/2), win_length=n_fft, window=scipy.signal.hamming(n_fft, sym=False), center=False)
-    return np.abs(librosa.stft(y=y_mono, n_fft=n_fft, hop_length=n_fft, win_length=n_fft, window='boxcar', center=False))
+    return librosa.stft(y=y_mono, n_fft=n_fft, hop_length=int(n_fft/2), win_length=n_fft, window=scipy.signal.hamming(n_fft, sym=False), center=False)
+    #return np.abs(librosa.stft(y=y_mono, n_fft=n_fft, hop_length=n_fft, win_length=n_fft, window='boxcar', center=False))
 
 def spectralImpulseToFilterKernel(H_raw, kernel_length):
      H_raw_cart = pol2cart(H_raw, np.zeros(H_raw.size))
@@ -47,13 +48,19 @@ def pol2cart(rho, phi):
 
 
 
-def spectralAdaption(y_in, y_ref, parameters):
+def spectralAdaption(y_in, y_in_refrain, y_ref_refrain, parameters):
 
-    Y_avg_in = calAverageSpectrum(y_in, parameters["n_fft"])
-    Y_avg_ref = calAverageSpectrum(y_ref, parameters["n_fft"])
+    Y_avg_in = calAverageSpectrum(y_in_refrain, parameters["n_fft"])
+    Y_avg_ref = calAverageSpectrum(y_ref_refrain, parameters["n_fft"])
     Y_diff = Y_avg_ref / Y_avg_in
 
     h = spectralImpulseToFilterKernel(Y_diff, parameters["kernel_length"])
 
-    return 0
+    y_filtered_left = np.convolve(y_in[0][:], h)
+    y_filtered_right = np.convolve(y_in[1][:], h)
+    y_filtered = np.concatenate(([y_filtered_left], [y_filtered_right]), axis=0)
+
+    y_filtered = sp.normalize(y_filtered)
+
+    return y_filtered
 
