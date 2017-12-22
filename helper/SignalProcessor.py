@@ -25,17 +25,18 @@ def getLoudestPart(y, sr, parameters):
     y_squared = librosa.to_mono(y)**2
 
     numSamples = sr * parameters['excerp_length_s']
+    start = 0
+    end = y_squared.size + 1
 
-    if numSamples >= y_squared.size:
-        return y
-    else:
+    if numSamples < y_squared.size:
         rmsValues = np.zeros(y_squared.size - numSamples + 1)
         rmsValues[0] = sum(y_squared[:numSamples])
         for i in range(1, y_squared.size - numSamples + 1):
             rmsValues[i] = rmsValues[i-1] - y_squared[i-1] + y_squared[numSamples+i-1]
-        loudest_start = np.argmax(rmsValues)
-        y_excerp = y[:, loudest_start:loudest_start+numSamples]
-        return y_excerp
+        start = np.argmax(rmsValues)
+        end = start+numSamples
+
+    return y[:, start:end], start, end
 
 def calRMS(y):
     return np.sqrt(np.mean(y**2))
