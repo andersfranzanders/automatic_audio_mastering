@@ -51,7 +51,7 @@ def pol2cart(rho, phi):
 def spectralAdaption(y_in, y_in_refrain, y_ref_refrain, parameters):
 
     Y_avg_in = calAverageSpectrum(y_in_refrain, parameters["n_fft"])
-    Y_avg_ref = calAverageSpectrum(y_ref_refrain, parameters["n_fft"])
+    Y_avg_ref = calAverageSpectrum(y_ref_refrain , parameters["n_fft"])
     Y_diff = Y_avg_ref / Y_avg_in
 
     h = spectralImpulseToFilterKernel(Y_diff, parameters["kernel_length"])

@@ -1,12 +1,12 @@
 import controller.Mastering_Pipeline as mastering_pipeline
 import helper.IO as io
 
-path_in = "audios/LPP - Pisco (Remix).mp3"
+path_in = "audios/LPP - MGA.wav"
 path_ref = "audios/LPP - Como eh.mp3"
 path_out = "audios/"
 
 
-parameters = {"n_fft": 2048, "kernel_length": 100, "excerp_length_s":30}
+parameters = {"n_fft": 2048, "kernel_length": 80, "excerp_length_s":30 }
 
 
 
