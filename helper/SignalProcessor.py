@@ -44,3 +44,7 @@ def calRMS(y):
 
 def calSquaredSum(y):
     return np.sum(y**2)
+
+def updateChorusPart(kernelLength, y_filtered, y_start, y_end):
+    offsetByFiltering = kernelLength - 1
+    return y_filtered[:, y_start + offsetByFiltering:y_end + offsetByFiltering]

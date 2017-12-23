@@ -1,6 +1,6 @@
 import numpy as np
 import librosa as li
-import helper.SignalProcessor as SignalProcessor
+import helper.SignalProcessor as SP
 
 
 def dynamicAdaption(y_in, y_in_chorus, y_ref_chorus, parameters):
@@ -8,42 +8,50 @@ def dynamicAdaption(y_in, y_in_chorus, y_ref_chorus, parameters):
     #hist_in = calCumulativeHistogram(parameters, y_in_chorus)
     #hist_ref = calCumulativeHistogram(parameters, y_ref_chorus)
 
-    h_in_values, h_in_counts = calCumulativeHistogram(y_in_chorus)
+    counts_in, edges_in = calCumulativeHistogram(y_in_chorus, parameters)
+    counts_ref, edges_ref = calCumulativeHistogram(y_ref_chorus, parameters)
+
+    transferF = matchHistograms(counts_in, edges_ref, counts_ref)
+
+    #limitSlope(transferF)
+
+    y_compressed = compress(y_in, transferF)
 
 
-    #matchHistograms(hist_in, hist_ref)
+    return y_compressed
 
-    return 0
+def limitSlope(transferF):
 
+    F_diff = np.diff(transferF)
 
+def compress(y_in, transferF):
+    y_compressed = np.zeos(y_in.shape)
 
+    for i in range(transferF.size):
+        x = 0
 
-def matchHistograms(hist_in, hist_ref):
-
-
-
-    return 0
-
-
-def calCumulativeHistogram(y):
-
-    h_values, h_counts = np.unique(np.abs(y), return_counts=True)
-    h_cum_counts = np.zeros(h_counts.size)
-    h_cum_counts[:] = [ np.sum(h_counts[:i + 1]) for i in range(h_counts.size) ]
-    return h_values, h_cum_counts
+    return y_compressed
 
 
+def matchHistograms(counts_in, edges_ref, counts_ref):
+
+    transferF = np.ones(edges_ref.size)
+    for currentIndex in range(counts_in.size):
+        # Fix later: interpolate between the TWO nearest Edges!!
+        if currentIndex == counts_in.size-1:
+            print ("hallo")
+        matchedIndex = (np.abs(counts_ref - counts_in[currentIndex])).argmin()
+        transferF[currentIndex] = edges_ref[matchedIndex]
+    return transferF
 
 
-# def calCumulativeHistogram(parameters, y):
-#
-#     y_mono = SignalProcessor.normalize(li.to_mono(y))
-#
-#     hist, bin_edges = np.histogram(a=y, bins=2 ** parameters['res_bits'], density=True)
-#     hist_cumulative = np.zeros(hist.size)
-#     for i in range(hist_cumulative.size):
-#         hist_cumulative[i] = np.sum(hist[:i + 1])
-#     return hist_cumulative / np.max(hist_cumulative)
+def calCumulativeHistogram(y, parameters):
+    y_abs = np.abs(SP.normalize(li.to_mono(y)))
+    counts, bin_edges = np.histogram(a=y_abs, bins=np.linspace(0,1,2**16+1, endpoint=True))
+    counts_cum = np.cumsum(counts)
+
+    return SP.normalize(counts_cum).astype("float32"), bin_edges.astype("float32")
+
 
 
 

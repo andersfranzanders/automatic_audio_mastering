@@ -62,5 +62,5 @@ def spectralAdaption(y_in, y_in_refrain, y_ref_refrain, parameters):
 
     y_filtered = sp.normalize(y_filtered)
 
-    return y_filtered
+    return y_filtered.astype("float32")
 
