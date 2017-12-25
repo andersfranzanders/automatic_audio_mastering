@@ -8,27 +8,59 @@ def dynamicAdaption(y_in, y_in_chorus, y_ref_chorus, parameters):
     #hist_in = calCumulativeHistogram(parameters, y_in_chorus)
     #hist_ref = calCumulativeHistogram(parameters, y_ref_chorus)
 
+
     counts_in, edges_in = calCumulativeHistogram(y_in_chorus, parameters)
     counts_ref, edges_ref = calCumulativeHistogram(y_ref_chorus, parameters)
 
+    print("Start: Buildings Transfer-Function!")
     transferF = matchHistograms(counts_in, edges_ref, counts_ref)
 
     #limitSlope(transferF)
 
-    y_compressed = compress(y_in, transferF)
+    print("Start: Compressing!")
+    y_compressed_left = compress(y_in[0], edges_in, transferF)
+    y_compressed_right = compress(y_in[1], edges_in, transferF)
+
+    return np.concatenate((y_compressed_left, y_compressed_right)).reshape((2, y_in.shape[1]))
 
 
-    return y_compressed
+def dynamicAdaptionDigitized(y_in, y_in_chorus, y_ref_chorus, parameters):
+
+
+    values_in, counts_in = calCumulativeHistogramDigitized(y_in_chorus, parameters)
+    values_ref, counts_ref = calCumulativeHistogramDigitized(y_ref_chorus, parameters)
+
+    transferF = matchHistogramsDigitized(counts_in, values_ref, counts_ref)
+
+    return y_in
+
+def matchHistogramsDigitized(counts_in, values_ref, counts_ref):
+
+    transferF = np.zeros(counts_in.size)
+    for currentIndex in range(counts_in.size):
+        matchedIndex = (np.abs(counts_ref - counts_in[currentIndex])).argmin()
+        transferF[currentIndex] = values_ref[matchedIndex]
+
+    return transferF
+
+
 
 def limitSlope(transferF):
 
     F_diff = np.diff(transferF)
 
-def compress(y_in, transferF):
-    y_compressed = np.zeos(y_in.shape)
+def compress(y, edges, transferF):
+    y_compressed = np.zeros(y.shape)
 
-    for i in range(transferF.size):
-        x = 0
+    for i in range(edges.size-1):
+        if i == (edges.size-1):
+            mask_positive = np.greater_equal(y, edges[i]) & np.less_equal(y, edges[i + 1])
+            mask_negative = np.less_equal(y, -edges[i]) & np.greater_equal(y, -edges[i + 1])
+        else:
+            mask_positive = np.greater_equal(y, edges[i]) & np.less(y, edges[i+1])
+            mask_negative = np.less_equal(y, -edges[i]) & np.greater(y, -edges[i + 1])
+        y_compressed[mask_positive] = transferF[i]
+        y_compressed[mask_negative] = -transferF[i]
 
     return y_compressed
 
@@ -38,10 +70,10 @@ def matchHistograms(counts_in, edges_ref, counts_ref):
     transferF = np.ones(edges_ref.size)
     for currentIndex in range(counts_in.size):
         # Fix later: interpolate between the TWO nearest Edges!!
-        if currentIndex == counts_in.size-1:
-            print ("hallo")
         matchedIndex = (np.abs(counts_ref - counts_in[currentIndex])).argmin()
         transferF[currentIndex] = edges_ref[matchedIndex]
+
+    transferF[-1] = transferF[-2]
     return transferF
 
 
@@ -52,6 +84,11 @@ def calCumulativeHistogram(y, parameters):
 
     return SP.normalize(counts_cum).astype("float32"), bin_edges.astype("float32")
 
+def calCumulativeHistogramDigitized(y, parameters):
+    y_abs = np.abs(SP.normalize(li.to_mono(y)))
+    values, counts = np.unique(y_abs, return_counts = True)
+    counts_cum = np.cumsum(counts)
 
+    return values.astype("float32"), SP.normalize(counts_cum).astype("float32")
 
 
