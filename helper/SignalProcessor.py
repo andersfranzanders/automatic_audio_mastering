@@ -12,9 +12,9 @@ def preprocessSignal(y, parameters):
         for i in range(2):
             y_stereo[i][:] = y_processed[:]
 
-        return digitizeAmplitudes(y_stereo, parameters['res_bits'])
+        return y_stereo
 
-    return digitizeAmplitudes(y_processed, parameters['res_bits'])
+    return y_processed
 
 
 def normalize(y):
@@ -49,7 +49,7 @@ def updateChorusPart(kernelLength, y_filtered, y_start, y_end):
     offsetByFiltering = kernelLength - 1
     return y_filtered[:, y_start + offsetByFiltering:y_end + offsetByFiltering]
 
-def digitizeAmplitudes(y, bitdepth):
+def digitizeAmplitudesStereo(y, bitdepth):
 
     bins = np.linspace(-1, 1 + 2/(2 ** bitdepth - 1), 2 ** bitdepth + 1)
     y_left = bins[np.digitize(y[0,:],bins) - 1]
@@ -59,3 +59,21 @@ def digitizeAmplitudes(y, bitdepth):
     #y_left = ( np.digitize(y[0, :], bins) - 1) / (2**(bitdepth-1) ) - 1
     #y_right= ( np.digitize(y[1, :], bins) - 1) / (2**(bitdepth-1) ) - 1
     return np.concatenate((y_left, y_right)).reshape(y.shape)
+
+def digitizeAmplitudesMono(y, bitdepth):
+
+    bins = np.linspace(-1, 1 + 2/(2 ** bitdepth - 1), 2 ** bitdepth + 1)
+    y_digitized = bins[np.digitize(y, bins) - 1]
+    return y_digitized, np.linspace(-1,1,2**bitdepth)
+
+def digitizeAmplitudesMono(y, bitdepth):
+
+    bins = np.linspace(-1, 1 + 2/(2 ** bitdepth - 1), 2 ** bitdepth + 2)
+    y_digitized = bins[np.digitize(y, bins) - 1]
+    return y_digitized, np.linspace(-1,1,2**bitdepth)
+
+def digitizeAmplitudesMonoPlus1(y, bitdepth):
+
+    bins = np.linspace(-1, 1, 2**bitdepth+1)
+    y_digitized = bins[np.digitize(y, bins) - 1]
+    return y_digitized, np.linspace(-1,1,2**bitdepth+1)

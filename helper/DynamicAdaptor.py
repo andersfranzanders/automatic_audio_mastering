@@ -93,10 +93,17 @@ def calCumulativeHistogram(y, parameters):
     return SP.normalize(counts_cum).astype("float32"), bin_edges.astype("float32")
 
 def calCumulativeHistogramDigitized(y, parameters):
-    y_abs = np.abs(SP.normalize(li.to_mono(y)))
-    values, counts = np.unique(y_abs, return_counts = True)
-    counts_cum = np.cumsum(counts)
+    #y_abs = np.abs(SP.digitizeAmplitudes(li.to_mono(y)))
+    y_abs = SP.normalize(np.abs(li.to_mono(y)))
+    y_abs_dig, values_all = SP.digitizeAmplitudesMonoPlus1(y_abs, parameters['res_bits'])
+    values_all_pos = values_all[2**(parameters['res_bits'] - 1) :]
 
-    return values.astype("float32"), SP.normalize(counts_cum).astype("float32")
+    values_y, counts_y = np.unique(y_abs_dig, return_counts = True)
+    counts_all = np.zeros(values_all_pos.size )
+    counts_all[np.in1d(values_all_pos, values_y)] = counts_y
+
+    counts_cum = np.cumsum(counts_all)
+
+    return values_all_pos, counts_cum
 
 

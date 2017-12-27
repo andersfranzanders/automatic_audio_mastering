@@ -22,13 +22,13 @@ def doMastering(y_in, y_ref, sr, parameters):
     y_in_filtered = SA.spectralAdaption(y_in, y_in_chorus, y_ref_chorus, parameters)
 
     print("Start: Postprocessing Signal after Filtering for the Compression Stage")
-    y_in_filtered = SP.preprocessSignal(y_in_filtered, parameters)
+    #y_in_filtered = SP.preprocessSignal(y_in_filtered, parameters)
     y_in_chorus_filtered = SP.updateChorusPart(parameters['kernel_length'], y_in_filtered, y_in_start, y_in_end )
 
 
     print("Start: Compressing")
-    #y_compressed = DA.dynamicAdaptionDigitized(y_in_filtered, y_in_chorus_filtered, y_ref_chorus, parameters)
-    y_compressed = y_in_filtered
+    y_compressed = DA.dynamicAdaptionDigitized(y_in_filtered, y_in_chorus_filtered, y_ref_chorus, parameters)
+    #y_compressed = y_in_filtered
     print("adapted Spectrum!")
 
     return SP.normalize(y_compressed)

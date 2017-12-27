@@ -6,7 +6,7 @@ path_ref = "audios/LPP - Como eh_short.wav"
 path_out = "audios/"
 
 
-parameters = {"n_fft": 2048, "kernel_length": 80, "excerp_length_s":10 , 'res_bits':16 }
+parameters = {"n_fft": 2048, "kernel_length": 80, "excerp_length_s":10 , 'res_bits':3 }
 
 
 
