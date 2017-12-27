@@ -27,8 +27,8 @@ def doMastering(y_in, y_ref, sr, parameters):
 
 
     print("Start: Compressing")
-    y_compressed = DA.dynamicAdaptionDigitized(y_in_filtered, y_in_chorus_filtered, y_ref_chorus, parameters)
-    #y_compressed = y_in_filtered
+    #y_compressed = DA.dynamicAdaptionDigitized(y_in_filtered, y_in_chorus_filtered, y_ref_chorus, parameters)
+    y_compressed = y_in_filtered
     print("adapted Spectrum!")
 
     return SP.normalize(y_compressed)

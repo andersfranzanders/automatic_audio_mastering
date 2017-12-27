@@ -5,17 +5,16 @@ import numpy as np
 def preprocessSignal(y, parameters):
 
     # y_processed = librosa.util.normalize(y)
-    y_digitized = digitizeAmplitudes(y, parameters['res_bits'])
-    y_processed = normalize(y_digitized)
+    y_processed = normalize(y)
 
     if y.ndim != 2:
         y_stereo = np.zeros((2, y.size), dtype=y_processed.dtype)
         for i in range(2):
             y_stereo[i][:] = y_processed[:]
 
-        return y_stereo
+        return digitizeAmplitudes(y_stereo, parameters['res_bits'])
 
-    return y_processed
+    return digitizeAmplitudes(y_processed, parameters['res_bits'])
 
 
 def normalize(y):
@@ -51,7 +50,12 @@ def updateChorusPart(kernelLength, y_filtered, y_start, y_end):
     return y_filtered[:, y_start + offsetByFiltering:y_end + offsetByFiltering]
 
 def digitizeAmplitudes(y, bitdepth):
-    bins = np.linspace(-1, 1, 2**bitdepth + 1)
-    y_left = ( np.digitize(y[0, :], bins) - 1) / (2**(bitdepth-1) ) - 1
-    y_right= ( np.digitize(y[1, :], bins) - 1) / (2**(bitdepth-1) ) - 1
+
+    bins = np.linspace(-1, 1 + 2/(2 ** bitdepth - 1), 2 ** bitdepth + 1)
+    y_left = bins[np.digitize(y[0,:],bins) - 1]
+    y_right = bins[np.digitize(y[1,:],bins) - 1]
+
+    #bins = np.linspace(-1, 1, 2**bitdepth + 1)
+    #y_left = ( np.digitize(y[0, :], bins) - 1) / (2**(bitdepth-1) ) - 1
+    #y_right= ( np.digitize(y[1, :], bins) - 1) / (2**(bitdepth-1) ) - 1
     return np.concatenate((y_left, y_right)).reshape(y.shape)

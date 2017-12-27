@@ -23,7 +23,6 @@ def dynamicAdaption(y_in, y_in_chorus, y_ref_chorus, parameters):
 
     return np.concatenate((y_compressed_left, y_compressed_right)).reshape((2, y_in.shape[1]))
 
-
 def dynamicAdaptionDigitized(y_in, y_in_chorus, y_ref_chorus, parameters):
 
 
@@ -33,6 +32,15 @@ def dynamicAdaptionDigitized(y_in, y_in_chorus, y_ref_chorus, parameters):
     transferF = matchHistogramsDigitized(counts_in, values_ref, counts_ref)
 
     return y_in
+
+def compressDigitized(y, values, transferF):
+    y_compressed = np.zeros(y.shape)
+
+    for i in range(values.size):
+        y_compressed[np.equal(y, values[i])] = transferF[i]
+        y_compressed[np.equal(-y, -values[i])] = -transferF[i]
+
+    return y_compressed
 
 def matchHistogramsDigitized(counts_in, values_ref, counts_ref):
 
