@@ -12,7 +12,7 @@ def dynamicAdaptionDigitized(y_in, y_in_chorus, y_ref_chorus, parameters):
     print("Start: Buildings Transfer-Function!")
     transferF = matchHistogramsDigitized(counts_in, values_ref, counts_ref)
 
-    transferF_slimited = limitSlope(transferF, values_in, parameters['max_transfer_slope'])
+    transferF_slimited = limitSlope(transferF, values_in, parameters['max_transfer_slope'], parameters['res_bits'])
     transferF_denoised = denoiseTransferF(transferF_slimited, values_in, parameters['denoise_slope'])
 
     print("Start: Compressing!!")
@@ -54,7 +54,7 @@ def matchHistogramsDigitized(counts_in, values_ref, counts_ref):
 
 
 
-def limitSlope(transferF, values_in, max_slope_faktor):
+def limitSlope(transferF, values_in, max_slope_faktor, res_bits):
 
     transferF_pre = np.concatenate((np.asarray([0]), transferF))
 
@@ -63,9 +63,16 @@ def limitSlope(transferF, values_in, max_slope_faktor):
     SP.limit(F_diff, max_slope)
 
     F_slimited = np.cumsum(F_diff)
-    F_slimited = F_slimited + (1 - F_slimited.max())
 
-    return F_slimited
+    ### Mastering by adding difference
+    #F_slimited_norm_dig = F_slimited + (1 - F_slimited.max())
+
+    ### Mastering by normalizing and redigitalizing
+    F_slimited_norm = SP.normalize(F_slimited)
+    F_slimited_norm_dig, _ = SP.digitizeAmplitudesMonoPlus1(F_slimited_norm, res_bits)
+
+
+    return F_slimited_norm_dig
 
 ## Bits = 10 :  F.diff.max() = 0.005
 ## Bits = 9: F_diff.max() = 0.011

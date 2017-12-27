@@ -7,12 +7,12 @@ path_out = "audios/"
 
 
 parameters = {'sampling_rate': 44100,
-              'res_bits':16,
-              "excerp_length_s":30 ,
-              "n_fft": 2048,
-              "kernel_length": 80,
+              'res_bits': 16,
+              'excerp_length_s': 30,
+              'n_fft': 2048,
+              'kernel_length': 80,
               'max_transfer_slope': 2,
-              'denoise_slope':2
+              'denoise_slope': 3
               }
 def main():
 
@@ -22,7 +22,7 @@ def main():
 
     y_out = mastering_pipeline.doMastering(y_in, y_ref, sr, parameters)
 
-    io.writeOutAudioFile(path_out, "mastered5.wav", y_out, sr)
+    io.writeOutAudioFile(path_out, "mastered7.wav", y_out, sr)
 
 
 main()
