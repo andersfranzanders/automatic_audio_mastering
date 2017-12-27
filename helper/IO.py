@@ -3,11 +3,8 @@
 import librosa
 
 
-target_sr = 44100
-
-
-def loadAudioFile(filePath):
-    y, sr = librosa.load(filePath, sr=target_sr, mono=False)
+def loadAudioFile(filePath, sampling_rate):
+    y, sr = librosa.load(filePath, sr=sampling_rate, mono=False)
 
     return y, sr
 
