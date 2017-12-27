@@ -40,6 +40,7 @@ def applyCompression(y, values, transferF, parameters):
         transferValue = transferF[np.equal(i,values).argmax()]
         y_compressed[np.equal(y_digitized, i)] = transferValue
         y_compressed[np.equal(y_digitized, -i)] = -transferValue
+        # np.copyTo()
 
     return y_compressed
 

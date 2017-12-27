@@ -1,9 +1,10 @@
 import controller.Mastering_Pipeline as mastering_pipeline
 import helper.IO as io
 
-path_in = "audios/LPP - BST_short.wav"
+path_in = "audios/LPP - MGA_short.wav"
 path_ref = "audios/LPP - Como eh.mp3"
 path_out = "audios/"
+name_out = "mastered2.wav"
 
 
 parameters = {'sampling_rate': 44100,
@@ -30,7 +31,7 @@ def main():
 
     print("----------- Finished Mastering ---------")
 
-    io.writeOutAudioFile(path_out, "mastered.wav", y_out, sr)
+    io.writeOutAudioFile(path_out, name_out, y_out, sr)
 
 
 main()
