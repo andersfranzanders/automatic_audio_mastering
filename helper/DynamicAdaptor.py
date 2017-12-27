@@ -3,23 +3,23 @@ import librosa as li
 import helper.SignalProcessor as SP
 
 
-def dynamicAdaptionDigitized(y_in, y_in_chorus, y_ref_chorus, parameters):
+def adaptDynamics(y_in, y_in_chorus, y_ref_chorus, parameters):
 
 
-    values_in, counts_in = calCumulativeHistogramDigitized(y_in_chorus, parameters)
-    values_ref, counts_ref = calCumulativeHistogramDigitized(y_ref_chorus, parameters)
+    values_in, counts_in = calCumulativeHistogram(y_in_chorus, parameters)
+    values_ref, counts_ref = calCumulativeHistogram(y_ref_chorus, parameters)
 
-    print("Start: Buildings Transfer-Function!")
-    transferF = matchHistogramsDigitized(counts_in, values_ref, counts_ref)
+    print("Calculating Transferfunction")
+    transferF = matchHistograms(counts_in, values_ref, counts_ref)
 
-    transferF_slimited = limitSlope(transferF, values_in, parameters['max_transfer_slope'], parameters['res_bits'])
+    transferF_slimited = limitSlopeOfTransferF(transferF, values_in, parameters['max_transfer_slope'], parameters['res_bits'])
     transferF_denoised = denoiseTransferF(transferF_slimited, values_in, parameters['denoise_slope'])
 
-    print("Start: Compressing!!")
-    y_compressed = compressDigitized(y_in, values_in, transferF_denoised, parameters)
+    print("Applying Transfer Function")
+    y_compressed = applyCompression(y_in, values_in, transferF_denoised, parameters)
 
-    #y_check = compressDigitized(y_in_chorus, values_in, transferF, parameters)
-    #values_check, counts_check = calCumulativeHistogramDigitized(y_check, parameters)
+    #y_check = applyCompression(y_in_chorus, values_in, transferF, parameters)
+    #values_check, counts_check = calCumulativeHistogram(y_check, parameters)
 
     return y_compressed
 
@@ -31,8 +31,8 @@ def denoiseTransferF(transferF, values_in, slope):
 
     return transferF
 
-def compressDigitized(y, values, transferF, parameters):
-    y_digitized, _ = SP.digitizeAmplitudesStereoPlus1(y, parameters['res_bits'])
+def applyCompression(y, values, transferF, parameters):
+    y_digitized, _ = SP.digitizeAmplitudesStereo(y, parameters['res_bits'])
     y_compressed = np.zeros(y.shape)
     y_values_pos = np.unique(np.abs(y_digitized))
 
@@ -43,7 +43,7 @@ def compressDigitized(y, values, transferF, parameters):
 
     return y_compressed
 
-def matchHistogramsDigitized(counts_in, values_ref, counts_ref):
+def matchHistograms(counts_in, values_ref, counts_ref):
 
     transferF = np.zeros(counts_in.size)
     for currentIndex in range(counts_in.size):
@@ -54,7 +54,7 @@ def matchHistogramsDigitized(counts_in, values_ref, counts_ref):
 
 
 
-def limitSlope(transferF, values_in, max_slope_faktor, res_bits):
+def limitSlopeOfTransferF(transferF, values_in, max_slope_faktor, res_bits):
 
     transferF_pre = np.concatenate((np.asarray([0]), transferF))
 
@@ -69,20 +69,15 @@ def limitSlope(transferF, values_in, max_slope_faktor, res_bits):
 
     ### Mastering by normalizing and redigitalizing
     F_slimited_norm = SP.normalize(F_slimited)
-    F_slimited_norm_dig, _ = SP.digitizeAmplitudesMonoPlus1(F_slimited_norm, res_bits)
+    F_slimited_norm_dig, _ = SP.digitizeAmplitudesMono(F_slimited_norm, res_bits)
 
 
     return F_slimited_norm_dig
 
-## Bits = 10 :  F.diff.max() = 0.005
-## Bits = 9: F_diff.max() = 0.011
-## Bits = 8 : F_diff.max() = 0.01562
-## Bits = 4 : F_diff.max() = 0.25
-
-def calCumulativeHistogramDigitized(y, parameters):
+def calCumulativeHistogram(y, parameters):
     #y_abs = np.abs(SP.digitizeAmplitudes(li.to_mono(y)))
     y_abs = SP.normalize(np.abs(li.to_mono(y)))
-    y_abs_dig, values_all = SP.digitizeAmplitudesMonoPlus1(y_abs, parameters['res_bits'])
+    y_abs_dig, values_all = SP.digitizeAmplitudesMono(y_abs, parameters['res_bits'])
     values_all_pos = values_all[2**(parameters['res_bits'] - 1) :]
 
     values_y, counts_y = np.unique(y_abs_dig, return_counts = True)
