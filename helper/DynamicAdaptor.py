@@ -21,7 +21,7 @@ def dynamicAdaption(y_in, y_in_chorus, y_ref_chorus, parameters):
     y_compressed_left = compress(y_in[0], edges_in, transferF)
     y_compressed_right = compress(y_in[1], edges_in, transferF)
 
-    return np.concatenate((y_compressed_left, y_compressed_right)).reshape((2, y_in.shape[1]))
+    return np.concatenate((y_compressed_left, y_compressed_right)).reshape((1, y_in.shape[1]))
 
 def dynamicAdaptionDigitized(y_in, y_in_chorus, y_ref_chorus, parameters):
 
@@ -29,16 +29,36 @@ def dynamicAdaptionDigitized(y_in, y_in_chorus, y_ref_chorus, parameters):
     values_in, counts_in = calCumulativeHistogramDigitized(y_in_chorus, parameters)
     values_ref, counts_ref = calCumulativeHistogramDigitized(y_ref_chorus, parameters)
 
+    print("Start: Buildings Transfer-Function!")
     transferF = matchHistogramsDigitized(counts_in, values_ref, counts_ref)
 
-    return y_in
+    transferF_slimited = limitSlope(transferF, values_in, parameters['max_transfer_slope'])
+    transferF_denoised = denoiseTransferF(transferF_slimited, values_in, parameters['max_transfer_slope'])
 
-def compressDigitized(y, values, transferF):
+    print("Start: Compressing!!")
+    y_compressed = compressDigitized(y_in, values_in, transferF_denoised, parameters)
+
+    #y_check = compressDigitized(y_in_chorus, values_in, transferF, parameters)
+    #values_check, counts_check = calCumulativeHistogramDigitized(y_check, parameters)
+
+    return y_compressed
+
+def denoiseTransferF(transferF, values_in, slope):
+    straightLine = (slope+1)*values_in
+    mask = np.greater(transferF, straightLine)
+    transferF[mask] = straightLine[mask]
+
+    return transferF
+
+def compressDigitized(y, values, transferF, parameters):
+    y_digitized, _ = SP.digitizeAmplitudesStereoPlus1(y, parameters['res_bits'])
     y_compressed = np.zeros(y.shape)
+    y_values_pos = np.unique(np.abs(y_digitized))
 
-    for i in range(values.size):
-        y_compressed[np.equal(y, values[i])] = transferF[i]
-        y_compressed[np.equal(-y, -values[i])] = -transferF[i]
+    for i in y_values_pos:
+        transferValue = transferF[np.equal(i,values).argmax()]
+        y_compressed[np.equal(y_digitized, i)] = transferValue
+        y_compressed[np.equal(y_digitized, -i)] = -transferValue
 
     return y_compressed
 
@@ -53,9 +73,24 @@ def matchHistogramsDigitized(counts_in, values_ref, counts_ref):
 
 
 
-def limitSlope(transferF):
+def limitSlope(transferF, values_in, max_slope_faktor):
 
-    F_diff = np.diff(transferF)
+    transferF_pre = np.concatenate((np.asarray([0]), transferF))
+
+    max_slope = max_slope_faktor *(values_in[1] - values_in[0])
+    F_diff = np.diff(transferF_pre)
+    SP.limit(F_diff, max_slope)
+
+    F_slimited = np.cumsum(F_diff)
+    F_slimited = F_slimited + (1 - F_slimited.max())
+
+    return F_slimited
+
+## Bits = 10 :  F.diff.max() = 0.005
+## Bits = 9: F_diff.max() = 0.011
+## Bits = 8 : F_diff.max() = 0.01562
+## Bits = 4 : F_diff.max() = 0.25
+
 
 def compress(y, edges, transferF):
     y_compressed = np.zeros(y.shape)
@@ -104,6 +139,6 @@ def calCumulativeHistogramDigitized(y, parameters):
 
     counts_cum = np.cumsum(counts_all)
 
-    return values_all_pos, counts_cum
+    return values_all_pos, SP.normalize(counts_cum)
 
 

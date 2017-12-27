@@ -77,3 +77,12 @@ def digitizeAmplitudesMonoPlus1(y, bitdepth):
     bins = np.linspace(-1, 1, 2**bitdepth+1)
     y_digitized = bins[np.digitize(y, bins) - 1]
     return y_digitized, np.linspace(-1,1,2**bitdepth+1)
+
+def digitizeAmplitudesStereoPlus1(y, bitdepth):
+    y_left, support = digitizeAmplitudesMonoPlus1(y[0, :], bitdepth)
+    y_right, support = digitizeAmplitudesMonoPlus1(y[1, :], bitdepth)
+
+    return np.concatenate((y_left, y_right)).reshape(y.shape), support
+
+def limit(F, faktor):
+    F[F>faktor] = faktor

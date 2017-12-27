@@ -1,12 +1,12 @@
 import controller.Mastering_Pipeline as mastering_pipeline
 import helper.IO as io
 
-path_in = "audios/LPP - MGA_short.wav"
-path_ref = "audios/LPP - Como eh_short.wav"
+path_in = "audios/LPP - Pisco (Remix).mp3"
+path_ref = "audios/LPP - Como eh.mp3"
 path_out = "audios/"
 
 
-parameters = {"n_fft": 2048, "kernel_length": 80, "excerp_length_s":10 , 'res_bits':3 }
+parameters = {"n_fft": 2048, "kernel_length": 80, "excerp_length_s":30 , 'res_bits':16, 'max_transfer_slope': 2 }
 
 
 
@@ -18,7 +18,7 @@ def main():
 
     y_out = mastering_pipeline.doMastering(y_in, y_ref, sr, parameters)
 
-    io.writeOutAudioFile(path_out, "mastered.wav", y_out, sr)
+    io.writeOutAudioFile(path_out, "mastered4.wav", y_out, sr)
 
 
 main()
