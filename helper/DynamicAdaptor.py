@@ -36,10 +36,6 @@ def applyCompressionPerformiced(y, values_in, transferF, parameters):
     y_left = y_digitized[0,:]
     y_right = y_digitized[1,:]
 
-    for i in y_left:
-        applyTransferIterator(i, values_in, transferF)
-
-
     iterator = (applyTransferIterator(i, values_in, transferF) for i in y_left)
     y_left_out = np.fromiter(iterator, np.float, count = y_left.size)
 
