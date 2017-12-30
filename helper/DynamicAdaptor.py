@@ -1,6 +1,7 @@
 import numpy as np
 import librosa as li
 import helper.SignalProcessor as SP
+from datetime import datetime
 
 
 def adaptDynamics(y_in, y_in_chorus, y_ref_chorus, parameters):
@@ -16,12 +17,43 @@ def adaptDynamics(y_in, y_in_chorus, y_ref_chorus, parameters):
     transferF_denoised = denoiseTransferF(transferF_slimited, values_in, parameters['denoise_slope'])
 
     print("Applying Transfer Function")
-    y_compressed = applyCompression(y_in, values_in, transferF_denoised, parameters)
+    #print("Old Start: " + str(datetime.now()))
+    #y_compressed = applyCompression(y_in, values_in, transferF_denoised, parameters)
+    #print("Old End: " + str(datetime.now()))
+
+    print("New Start: " + str(datetime.now()))
+    y_compressed = applyCompressionPerformiced(y_in, values_in, transferF_denoised, parameters)
+    print("New End: " + str(datetime.now()))
 
     #y_check = applyCompression(y_in_chorus, values_in, transferF, parameters)
     #values_check, counts_check = calCumulativeHistogram(y_check, parameters)
 
     return y_compressed
+
+def applyCompressionPerformiced(y, values_in, transferF, parameters):
+
+    y_digitized, _ = SP.digitizeAmplitudesStereo(y, parameters['res_bits'])
+    y_left = y_digitized[0,:]
+    y_right = y_digitized[1,:]
+
+    for i in y_left:
+        applyTransferIterator(i, values_in, transferF)
+
+
+    iterator = (applyTransferIterator(i, values_in, transferF) for i in y_left)
+    y_left_out = np.fromiter(iterator, np.float, count = y_left.size)
+
+    iterator = (applyTransferIterator(i, values_in, transferF) for i in y_right)
+    y_right_out = np.fromiter(iterator, np.float, count = y_right.size)
+
+    return np.concatenate((y_left_out, y_right_out)).reshape(y.shape)
+
+def applyTransferIterator(i, values, transferF):
+    transferValue = transferF[np.equal(abs(i), values).argmax()]
+    if i < 0:
+        return - transferValue
+    return transferValue
+
 
 def denoiseTransferF(transferF, values_in, slope):
     straightLine = slope * values_in
@@ -37,9 +69,9 @@ def applyCompression(y, values, transferF, parameters):
     y_values_pos = np.unique(np.abs(y_digitized))
 
     for i in y_values_pos:
-        transferValue = transferF[np.equal(i,values).argmax()]
-        y_compressed[np.equal(y_digitized, i)] = transferValue
-        y_compressed[np.equal(y_digitized, -i)] = -transferValue
+        transferValue = transferF[(i == values).argmax()]
+        y_compressed[y_digitized == i] = transferValue
+        y_compressed[y_digitized == -i] = -transferValue
         # np.copyTo()
 
     return y_compressed
