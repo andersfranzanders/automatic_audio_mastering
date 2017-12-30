@@ -4,7 +4,7 @@ import helper.IO as io
 path_in = "audios/LPP - MGA.wav"
 path_ref = "audios/LPP - Como eh.mp3"
 path_out = "audios/"
-name_out = "mastered4.wav"
+name_out = "mastered5.wav"
 
 
 parameters = {'sampling_rate': 44100,

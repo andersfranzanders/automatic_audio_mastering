@@ -17,16 +17,7 @@ def adaptDynamics(y_in, y_in_chorus, y_ref_chorus, parameters):
     transferF_denoised = denoiseTransferF(transferF_slimited, values_in, parameters['denoise_slope'])
 
     print("Applying Transfer Function")
-    #print("Old Start: " + str(datetime.now()))
-    #y_compressed = applyCompression(y_in, values_in, transferF_denoised, parameters)
-    #print("Old End: " + str(datetime.now()))
-
-    print("New Start: " + str(datetime.now()))
     y_compressed = applyCompressionPerformiced(y_in, values_in, transferF_denoised, parameters)
-    print("New End: " + str(datetime.now()))
-
-    #y_check = applyCompression(y_in_chorus, values_in, transferF, parameters)
-    #values_check, counts_check = calCumulativeHistogram(y_check, parameters)
 
     return y_compressed
 
@@ -59,7 +50,7 @@ def denoiseTransferF(transferF, values_in, slope):
 
     return transferF
 
-def applyCompression(y, values, transferF, parameters):
+def applyCompression_old(y, values, transferF, parameters):
     y_digitized, _ = SP.digitizeAmplitudesStereo(y, parameters['res_bits'])
     y_compressed = np.zeros(y.shape)
     y_values_pos = np.unique(np.abs(y_digitized))
